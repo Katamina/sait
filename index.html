@@ -179,6 +179,28 @@
             border-color: #667eea;
         }
         
+        /* Стили для кнопок */
+        .attachment-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            background-color: #f0f2f5;
+            color: #667eea;
+            font-size: 20px;
+        }
+        
+        .attachment-button:hover {
+            background-color: #e4e6e9;
+            transform: scale(1.05);
+        }
+        
         .send-button {
             width: 50px;
             height: 50px;
@@ -196,6 +218,101 @@
         }
         
         .send-button:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Стили для превью файлов */
+        .file-preview-container {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .file-preview-item {
+            display: flex;
+            align-items: center;
+            background-color: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+        
+        .file-preview-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 10px;
+        }
+        
+        .file-preview-remove {
+            color: #f44336;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        /* Стили для файлов в сообщениях */
+        .file-message {
+            margin-top: 8px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            max-width: 250px;
+            transition: all 0.3s;
+        }
+        
+        .file-message:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .file-message-icon {
+            font-size: 24px;
+            margin-right: 12px;
+            color: #667eea;
+        }
+        
+        .file-message-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .file-message-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-message-size {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .file-message.outgoing .file-message-icon {
+            color: white;
+        }
+        
+        .file-message.outgoing {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Миниатюры картинок */
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .image-preview:hover {
             transform: scale(1.05);
         }
         
@@ -390,6 +507,10 @@
             .message-input-container {
                 padding: 15px;
             }
+            
+            .file-message {
+                max-width: 200px;
+            }
         }
         
         /* Скроллбар */
@@ -467,7 +588,7 @@
                 <div id="connection-status" class="connection-status" style="display: none;">
                     <i class="fas fa-check-circle"></i> Подключено к серверу
                 </div>
-                <input type="text" id="username-input" placeholder="Введите ваше имя" maxlength="20">
+                <input type="text" id="username-input" placeholder="Например: Алексей или Мария" maxlength="20">
                 <button class="join-button" id="join-button">Войти в чат</button>
                 <p style="margin-top: 15px; font-size: 12px; color: #666;">
                     <i class="fas fa-info-circle"></i> Просто отправьте эту ссылку друзьям
@@ -504,14 +625,34 @@
                 </div>
             </div>
             
-            <!-- Поле ввода сообщений -->
+            <!-- Поле ввода сообщений с прикреплением файлов -->
             <div class="message-input-container">
                 <div class="input-wrapper">
                     <input type="text" class="username-input" id="current-username" placeholder="Ваше имя" maxlength="20">
-                    <textarea class="message-input" id="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                    <textarea class="message-input" id="message-input" placeholder="Введите сообщение или прикрепите файл..." rows="1"></textarea>
+                    
+                    <!-- Контейнер для превью прикрепленных файлов -->
+                    <div class="file-preview-container" id="file-preview-container">
+                        <div style="margin-bottom: 5px; font-size: 14px; color: #666; font-weight: 500;">
+                            Прикрепленные файлы:
+                        </div>
+                        <div id="file-preview-list">
+                            <!-- Здесь будут появляться превью файлов -->
+                        </div>
+                    </div>
+                    
                     <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
                 </div>
                 
+                <!-- Кнопка прикрепления файлов -->
+                <button class="attachment-button" id="attachment-button" title="Прикрепить файл">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                
+                <!-- Скрытый input для выбора файлов -->
+                <input type="file" id="file-input" style="display: none;" multiple accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar">
+                
+                <!-- Кнопка отправки -->
                 <button class="send-button" id="send-button">
                     <i class="fas fa-paper-plane"></i>
                 </button>
@@ -560,9 +701,11 @@
     // ================ ПЕРЕМЕННЫЕ ================
     let currentUser = {
         id: null,
-        name: 'Гость',
+        name: '',
         color: getRandomColor()
     };
+    
+    let attachedFiles = []; // Массив для хранения прикрепленных файлов
     
     // ================ ИНИЦИАЛИЗАЦИЯ ================
     document.addEventListener('DOMContentLoaded', function() {
@@ -595,13 +738,26 @@
             if (e.key === 'Enter') joinChat();
         });
         
+        // Кнопка прикрепления файлов
+        document.getElementById('attachment-button').addEventListener('click', function() {
+            document.getElementById('file-input').click();
+        });
+        
+        // Выбор файлов
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+        
         // Отправка сообщения
-        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('send-button').addEventListener('click', sendMessageWithFiles);
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                sendMessageWithFiles();
             }
+            // Авторазмер текстового поля
+            setTimeout(() => {
+                e.target.style.height = 'auto';
+                e.target.style.height = (e.target.scrollHeight) + 'px';
+            }, 0);
         });
         
         // Изменение имени
@@ -619,14 +775,10 @@
         const usernameInput = document.getElementById('username-input');
         let username = usernameInput.value.trim();
         
-        // Если пользователь оставил "Гость" - просим ввести настоящее имя
-        if (!username || username === 'Гость') {
-            username = prompt('Пожалуйста, введите ваше настоящее имя:', 'Аноним');
-            if (!username || username.trim() === '') {
-                alert('Имя обязательно! Введите имя.');
-                return;
-            }
-            username = username.trim();
+        if (!username) {
+            alert('Пожалуйста, введите ваше имя!');
+            usernameInput.focus();
+            return;
         }
         
         currentUser.name = username;
@@ -647,6 +799,7 @@
         showNotification(`Добро пожаловать, ${currentUser.name}!`);
         console.log('✅ Пользователь вошел как:', currentUser.name);
     }
+    
     function loadMessages() {
         const messagesRef = database.ref('messages');
         
@@ -693,12 +846,27 @@
             const isCurrentUser = message.userId === currentUser.id;
             messageDiv.className = `message ${isCurrentUser ? 'outgoing' : 'incoming'}`;
             
+            let contentHTML = '';
+            
+            // Текст сообщения
+            if (message.text) {
+                contentHTML += `<div class="message-text">${message.text}</div>`;
+            }
+            
+            // Файлы сообщения
+            if (message.files && message.files.length > 0) {
+                message.files.forEach(fileData => {
+                    const fileElement = createFileElement(fileData, isCurrentUser);
+                    contentHTML += fileElement.outerHTML;
+                });
+            }
+            
             messageDiv.innerHTML = `
                 <div class="message-sender" style="color: ${message.userColor || '#667eea'}">
                     ${message.userName}
                 </div>
                 <div class="message-content">
-                    <div class="message-text">${message.text}</div>
+                    ${contentHTML}
                 </div>
                 <div class="message-time">${formatTime(message.timestamp)}</div>
             `;
@@ -707,22 +875,157 @@
         return messageDiv;
     }
     
-        function sendMessage() {
+    // Функция для создания элемента файла
+    function createFileElement(fileData, isOutgoing = false) {
+        const fileDiv = document.createElement('div');
+        
+        // Определяем иконку по типу файла
+        let icon = 'fa-file';
+        let iconColor = isOutgoing ? 'white' : '#667eea';
+        
+        if (fileData.type.startsWith('image/')) {
+            icon = 'fa-file-image';
+            // Для картинок показываем миниатюру
+            const img = document.createElement('img');
+            img.src = fileData.data;
+            img.className = 'image-preview';
+            img.onclick = function() {
+                window.open(fileData.data, '_blank');
+            };
+            fileDiv.appendChild(img);
+        } else if (fileData.type.includes('pdf')) {
+            icon = 'fa-file-pdf';
+            iconColor = isOutgoing ? 'white' : '#f44336';
+        } else if (fileData.type.includes('word') || fileData.type.includes('document')) {
+            icon = 'fa-file-word';
+            iconColor = isOutgoing ? 'white' : '#2196f3';
+        } else if (fileData.type.includes('text')) {
+            icon = 'fa-file-alt';
+        } else if (fileData.type.includes('zip') || fileData.type.includes('compressed')) {
+            icon = 'fa-file-archive';
+            iconColor = isOutgoing ? 'white' : '#ff9800';
+        }
+        
+        const fileLink = document.createElement('a');
+        fileLink.href = fileData.data;
+        fileLink.download = fileData.name;
+        fileLink.target = '_blank';
+        fileLink.className = `file-message ${isOutgoing ? 'outgoing' : ''}`;
+        fileLink.innerHTML = `
+            <div class="file-message-icon">
+                <i class="fas ${icon}" style="color: ${iconColor}"></i>
+            </div>
+            <div class="file-message-info">
+                <div class="file-message-name">${fileData.name}</div>
+                <div class="file-message-size">${formatFileSize(fileData.size)}</div>
+            </div>
+        `;
+        
+        fileDiv.appendChild(fileLink);
+        return fileDiv;
+    }
+    
+    // Обработка выбора файлов
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        
+        // Ограничиваем количество файлов
+        if (files.length > 5) {
+            showNotification('Можно прикрепить не более 5 файлов', 'error');
+            return;
+        }
+        
+        // Проверяем каждый файл
+        files.forEach(file => {
+            // Максимальный размер файла - 5MB (Firebase имеет ограничения)
+            const MAX_SIZE = 5 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+                showNotification(`Файл "${file.name}" слишком большой (макс. 5MB)`, 'error');
+                return;
+            }
+            
+            // Добавляем файл в массив
+            attachedFiles.push({
+                file: file,
+                id: Date.now() + Math.random()
+            });
+        });
+        
+        // Обновляем превью файлов
+        updateFilePreview();
+        
+        // Сбрасываем input
+        event.target.value = '';
+    }
+    
+    // Обновление превью файлов
+    function updateFilePreview() {
+        const previewContainer = document.getElementById('file-preview-container');
+        const previewList = document.getElementById('file-preview-list');
+        
+        if (attachedFiles.length === 0) {
+            previewContainer.style.display = 'none';
+            previewList.innerHTML = '';
+            return;
+        }
+        
+        previewContainer.style.display = 'block';
+        previewList.innerHTML = '';
+        
+        attachedFiles.forEach((fileData, index) => {
+            const file = fileData.file;
+            const fileElement = document.createElement('div');
+            fileElement.className = 'file-preview-item';
+            
+            // Определяем иконку
+            let icon = 'fa-file';
+            if (file.type.startsWith('image/')) icon = 'fa-file-image';
+            else if (file.type.includes('pdf')) icon = 'fa-file-pdf';
+            else if (file.type.includes('word') || file.type.includes('document')) icon = 'fa-file-word';
+            else if (file.type.includes('text')) icon = 'fa-file-alt';
+            else if (file.type.includes('zip') || file.type.includes('compressed')) icon = 'fa-file-archive';
+            
+            fileElement.innerHTML = `
+                <i class="fas ${icon}" style="color: #667eea;"></i>
+                <div class="file-preview-name">${file.name}</div>
+                <div style="font-size: 12px; color: #888; margin-right: 10px;">
+                    ${formatFileSize(file.size)}
+                </div>
+                <i class="fas fa-times file-preview-remove" data-index="${index}"></i>
+            `;
+            
+            previewList.appendChild(fileElement);
+        });
+        
+        // Добавляем обработчики для удаления файлов
+        document.querySelectorAll('.file-preview-remove').forEach(removeBtn => {
+            removeBtn.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                attachedFiles.splice(index, 1);
+                updateFilePreview();
+            });
+        });
+    }
+    
+    // Отправка сообщения с файлами
+    async function sendMessageWithFiles() {
         const messageInput = document.getElementById('message-input');
         const text = messageInput.value.trim();
         
-        // Проверяем, что пользователь вошел (имя не пустое и не "Гость")
-        if (!currentUser.name || currentUser.name === 'Гость') {
-            alert('Сначала войдите в чат! Введите имя и нажмите "Войти в чат"');
+        // Проверяем, что пользователь вошел
+        if (!currentUser.name) {
+            alert('Сначала войдите в чат!');
             return;
         }
         
-        if (!text) {
-            alert('Введите текст сообщения!');
+        // Проверяем, что есть хотя бы текст или файлы
+        if (!text && attachedFiles.length === 0) {
+            alert('Введите сообщение или прикрепите файл!');
             return;
         }
         
-        const message = {
+        // Подготовка данных для отправки
+        const messageData = {
             userId: currentUser.id,
             userName: currentUser.name,
             userColor: currentUser.color,
@@ -731,106 +1034,43 @@
             type: 'message'
         };
         
-        database.ref('messages').push(message)
-            .then(() => {
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                scrollToBottom();
-            })
-            .catch((error) => {
-                console.error('Ошибка:', error);
-                alert('Ошибка отправки: ' + error.message);
-            });
-    }
-    
-    function addSystemMessage(text) {
-        const systemMessage = {
-            text: text,
-            timestamp: Date.now(),
-            type: 'system'
-        };
-        
-        database.ref('messages').push(systemMessage);
-    }
-    
-    function updateUsername() {
-        const newUsername = document.getElementById('current-username').value.trim();
-        
-        if (!newUsername) {
-            alert('Имя не может быть пустым');
-            document.getElementById('current-username').value = currentUser.name;
-            return;
+        // Если есть файлы, конвертируем их в Base64
+        if (attachedFiles.length > 0) {
+            messageData.files = [];
+            
+            try {
+                // Конвертируем каждый файл в Base64
+                for (const fileData of attachedFiles) {
+                    const file = fileData.file;
+                    const base64 = await convertFileToBase64(file);
+                    
+                    messageData.files.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: base64
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка конвертации файла:', error);
+                showNotification('Ошибка обработки файлов', 'error');
+                return;
+            }
         }
         
-        const oldUsername = currentUser.name;
-        currentUser.name = newUsername;
-        
-        addSystemMessage(`✏️ ${oldUsername} сменил(а) имя на ${newUsername}`);
-        showNotification(`Имя изменено на ${newUsername}`);
-    }
-    
-    function showShareModal() {
-        const modal = document.getElementById('link-modal');
-        const linkInput = document.getElementById('chat-link');
-        
-        linkInput.value = window.location.href;
-        modal.style.display = 'flex';
-    }
-    
-    function copyLink() {
-        const linkInput = document.getElementById('chat-link');
-        linkInput.select();
-        linkInput.setSelectionRange(0, 99999);
-        
-        navigator.clipboard.writeText(linkInput.value)
-            .then(() => showNotification('Ссылка скопирована!'))
-            .catch(() => {
-                // Fallback
-                document.execCommand('copy');
-                showNotification('Ссылка скопирована!');
-            });
-    }
-    
-    function scrollToBottom() {
-        const container = document.getElementById('messages-container');
-        if (container) {
-            container.scrollTop = container.scrollHeight;
-        }
-    }
-    
-    function formatTime(timestamp) {
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-    }
-    
-    function getRandomColor() {
-        const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b'];
-        return colors[Math.floor(Math.random() * colors.length)];
-    }
-    
-    function showNotification(text) {
-        // Простое уведомление
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-        `;
-        notification.textContent = text;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 3000);
-    }
-</script>
-</body>
-</html>
-
-
+        // Отправляем в Firebase
+        try {
+            await database.ref('messages').push(messageData);
+            
+            // Очищаем форму
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            attachedFiles = [];
+            updateFilePreview();
+            
+            scrollToBottom();
+            showNotification('Сообщение отправлено!');
+            
+        } catch (error) {
+            console.error('Ошибка отправки:', error);
+            showNotification('Ошибка отправки
