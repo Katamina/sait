@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Общий чат - Присоединяйтесь по ссылке</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 90vh;
+            background-color: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-info h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .chat-info p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .share-link {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .share-link:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .share-link span {
+            font-size: 14px;
+        }
+        
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f5f7fb;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+        
+        .message.incoming {
+            align-items: flex-start;
+        }
+        
+        .message.outgoing {
+            align-items: flex-end;
+            margin-left: auto;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .message.incoming .message-content {
+            background-color: white;
+            border-top-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message.outgoing .message-content {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-top-right-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        
+        .message-file {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-top: 8px;
+            text-decoration: none;
+            color: inherit;
+            max-width: 300px;
+        }
+        
+        .message.outgoing .message-file {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .file-icon {
+            font-size: 24px;
+            margin-right: 12px;
+            color: #667eea;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .message-input-container {
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .username-input {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            width: 200px;
+        }
+        
+        .message-input {
+            padding: 15px 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            width: 100%;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .attachment-button, .send-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .attachment-button {
+            background-color: #f0f2f5;
+            color: #667eea;
+            font-size: 20px;
+        }
+        
+        .attachment-button:hover {
+            background-color: #e4e6e9;
+        }
+        
+        .send-button {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 18px;
+        }
+        
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .uploaded-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .file-preview {
+            display: flex;
+            align-items: center;
+            background-color: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        
+        .file-preview i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+        
+        .remove-file {
+            margin-left: 8px;
+            color: #ff6b6b;
+            cursor: pointer;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .join-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .join-screen h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .join-screen p {
+            margin-bottom: 30px;
+            color: #666;
+            max-width: 500px;
+        }
+        
+        .user-setup {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .user-setup input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .join-button {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        
+        .join-button:hover {
+            opacity: 0.9;
+        }
+        
+        .participants-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Модальное окно для ссылки */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .link-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .link-container input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 14px;
+        }
+        
+        .copy-button {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+        }
+        
+        .close-modal {
+            background-color: #f0f2f5;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(150%);
+            transition: transform 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .app-container {
+                height: 95vh;
+                border-radius: 10px;
+            }
+            
+            .chat-header {
+                padding: 15px;
+            }
+            
+            .chat-info h1 {
+                font-size: 20px;
+            }
+            
+            .share-link span {
+                display: none;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .message-input-container {
+                padding: 15px;
+            }
+        }
+        
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Экран входа -->
+        <div class="join-screen" id="join-screen">
+            <div class="user-setup">
+                <h2>Добро пожаловать в общий чат!</h2>
+                <p>Любой пользователь с этой ссылкой может присоединиться к беседе, отправлять сообщения и файлы.</p>
+                <input type="text" id="username-input" placeholder="Введите ваше имя" maxlength="20">
+                <button class="join-button" id="join-button">Присоединиться к чату</button>
+            </div>
+        </div>
+        
+        <!-- Интерфейс чата (изначально скрыт) -->
+        <div id="chat-interface" style="display: none; height: 100%; flex-direction: column;">
+            <!-- Заголовок чата -->
+            <div class="chat-header">
+                <div class="chat-info">
+                    <h1>Общий чат</h1>
+                    <p>Любой с ссылкой может присоединиться</p>
+                    <div class="participants-count">
+                        <i class="fas fa-users"></i>
+                        <span id="participants-count">1 участник</span>
+                    </div>
+                </div>
+                <div class="share-link" id="share-link-btn">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Поделиться ссылкой</span>
+                </div>
+            </div>
+            
+            <!-- Контейнер сообщений -->
+            <div class="messages-container" id="messages-container">
+                <!-- Сообщения будут добавляться здесь -->
+            </div>
+            
+            <!-- Поле ввода сообщений -->
+            <div class="message-input-container">
+                <div class="input-wrapper">
+                    <input type="text" class="username-input" id="current-username" placeholder="Ваше имя" maxlength="20">
+                    <textarea class="message-input" id="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
+                    
+                    <!-- Препью прикрепленных файлов -->
+                    <div class="uploaded-files" id="uploaded-files">
+                        <!-- Прикрепленные файлы будут отображаться здесь -->
+                    </div>
+                </div>
+                
+                <button class="attachment-button" id="attachment-button">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                
+                <button class="send-button" id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                
+                <input type="file" class="file-input" id="file-input" multiple>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для ссылки -->
+    <div class="modal" id="link-modal">
+        <div class="modal-content">
+            <h3>Поделиться ссылкой на чат</h3>
+            <p>Отправьте эту ссылку другим пользователям, чтобы они могли присоединиться к чату:</p>
+            <div class="link-container">
+                <input type="text" id="chat-link" readonly>
+                <button class="copy-button" id="copy-link-btn">Копировать</button>
+            </div>
+            <button class="close-modal" id="close-modal-btn">Закрыть</button>
+        </div>
+    </div>
+    
+    <!-- Уведомление -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Текст уведомления</span>
+    </div>
+
+    <script>
+        // Конфигурация приложения
+        const CONFIG = {
+            // ID чата - можно изменить для создания разных чатов
+            CHAT_ID: 'public-chat-room-1',
+            // Максимальный размер файла в байтах (5 МБ)
+            MAX_FILE_SIZE: 5 * 1024 * 1024,
+            // Поддерживаемые типы файлов
+            ALLOWED_FILE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        };
+        
+        // Состояние приложения
+        const state = {
+            user: {
+                id: null,
+                name: '',
+                color: ''
+            },
+            messages: [],
+            participants: {},
+            files: []
+        };
+        
+        // Инициализация приложения
+        function initApp() {
+            // Генерируем ID пользователя, если его нет
+            const savedUserId = localStorage.getItem('chat_user_id');
+            if (savedUserId) {
+                state.user.id = savedUserId;
+            } else {
+                state.user.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('chat_user_id', state.user.id);
+            }
+            
+            // Загружаем имя пользователя, если оно сохранено
+            const savedUsername = localStorage.getItem('chat_username');
+            if (savedUsername) {
+                state.user.name = savedUsername;
+                document.getElementById('username-input').value = savedUsername;
+            }
+            
+            // Генерируем цвет пользователя
+            state.user.color = generateUserColor(state.user.id);
+            
+            // Загружаем сообщения из localStorage
+            loadMessages();
+            
+            // Загружаем участников из localStorage
+            loadParticipants();
+            
+            // Настраиваем обработчики событий
+            setupEventListeners();
+            
+            // Показываем уведомление, если есть ссылка на скачивание файла
+            const fileToDownload = sessionStorage.getItem('file_to_download');
+            if (fileToDownload) {
+                sessionStorage.removeItem('file_to_download');
+                showNotification(`Файл "${fileToDownload}" успешно скачан`);
+            }
+            
+            // Если имя пользователя уже есть, сразу показываем чат
+            if (state.user.name) {
+                showChatInterface();
+            }
+        }
+        
+        // Загружаем сообщения из localStorage
+        function loadMessages() {
+            const savedMessages = localStorage.getItem(`chat_messages_${CONFIG.CHAT_ID}`);
+            if (savedMessages) {
+                state.messages = JSON.parse(savedMessages);
+                renderMessages();
+            }
+        }
+        
+        // Сохраняем сообщения в localStorage
+        function saveMessages() {
+            localStorage.setItem(`chat_messages_${CONFIG.CHAT_ID}`, JSON.stringify(state.messages));
+        }
+        
+        // Загружаем участников из localStorage
+        function loadParticipants() {
+            const savedParticipants = localStorage.getItem(`chat_participants_${CONFIG.CHAT_ID}`);
+            if (savedParticipants) {
+                state.participants = JSON.parse(savedParticipants);
+                updateParticipantsCount();
+            }
+        }
+        
+        // Сохраняем участников в localStorage
+        function saveParticipants() {
+            // Обновляем время последней активности пользователя
+            state.participants[state.user.id] = {
+                name: state.user.name,
+                color: state.user.color,
+                lastActive: Date.now()
+            };
+            
+            // Удаляем неактивных участников (более 1 часа)
+            const oneHourAgo = Date.now() - 60 * 60 * 1000;
+            for (const userId in state.participants) {
+                if (state.participants[userId].lastActive < oneHourAgo) {
+                    delete state.participants[userId];
+                }
+            }
+            
+            localStorage.setItem(`chat_participants_${CONFIG.CHAT_ID}`, JSON.stringify(state.participants));
+            updateParticipantsCount();
+        }
+        
+        // Генерируем цвет для пользователя на основе его ID
+        function generateUserColor(userId) {
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#f5576c', 
+                '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+                '#fa709a', '#fee140', '#30cfd0', '#330867'
+            ];
+            
+            let hash = 0;
+            for (let i = 0; i < userId.length; i++) {
+                hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+        
+        // Показываем интерфейс чата
+        function showChatInterface() {
+            document.getElementById('join-screen').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'flex';
+            
+            // Обновляем поле с именем пользователя
+            document.getElementById('current-username').value = state.user.name;
+            
+            // Сохраняем участника
+            saveParticipants();
+            
+            // Прокручиваем к последним сообщениям
+            scrollToBottom();
+            
+            // Показываем системное сообщение о присоединении
+            if (state.messages.length === 0 || !state.messages.some(m => m.type === 'system' && m.text.includes(state.user.name))) {
+                addSystemMessage(`${state.user.name} присоединился(ась) к чату`);
+            }
+        }
+        
+        // Рендерим сообщения
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '';
+            
+            state.messages.forEach(message => {
+                const messageElement = createMessageElement(message);
+                container.appendChild(messageElement);
+            });
+            
+            scrollToBottom();
+        }
+        
+        // Создаем элемент сообщения
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            
+            if (message.type === 'system') {
+                // Системное сообщение
+                messageDiv.className = 'message system';
+                messageDiv.innerHTML = `
+                    <div style="text-align: center; color: #888; font-size: 14px; margin: 10px 0;">
+                        ${message.text}
+                        <div class="message-time">${formatTime(message.timestamp)}</div>
+                    </div>
+                `;
+            } else {
+                // Обычное сообщение
+                const isCurrentUser = message.senderId === state.user.id;
+                messageDiv.className = `message ${isCurrentUser ? 'outgoing' : 'incoming'}`;
+                
+                let fileContent = '';
+                if (message.file) {
+                    fileContent = `
+                        <a href="${message.file.url}" class="message-file" download="${message.file.name}" target="_blank">
+                            <div class="file-icon">
+                                ${getFileIcon(message.file.type)}
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">${message.file.name}</div>
+                                <div class="file-size">${formatFileSize(message.file.size)}</div>
+                            </div>
+                        </a>
+                    `;
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="message-sender" style="color: ${message.senderColor}">
+                        ${message.senderName}
+                    </div>
+                    <div class="message-content">
+                        ${message.text ? `<div class="message-text">${message.text}</div>` : ''}
+                        ${fileContent}
+                    </div>
+                    <div class="message-time">${formatTime(message.timestamp)}</div>
+                `;
+            }
+            
+            return messageDiv;
+        }
+        
+        // Добавляем системное сообщение
+        function addSystemMessage(text) {
+            const message = {
+                id: Date.now(),
+                type: 'system',
+                text: text,
+                timestamp: Date.now()
+            };
+            
+            state.messages.push(message);
+            saveMessages();
+            renderMessages();
+        }
+        
+        // Отправляем сообщение
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const text = messageInput.value.trim();
+            
+            // Проверяем, есть ли текст или прикрепленные файлы
+            if (!text && state.files.length === 0) {
+                return;
+            }
+            
+            // Создаем сообщение
+            const message = {
+                id: Date.now(),
+                type: 'user',
+                senderId: state.user.id,
+                senderName: state.user.name,
+                senderColor: state.user.color,
+                text: text,
+                timestamp: Date.now(),
+                file: state.files.length > 0 ? state.files[0] : null
+            };
+            
+            // Добавляем сообщение
+            state.messages.push(message);
+            saveMessages();
+            
+            // Обновляем участников
+            saveParticipants();
+            
+            // Очищаем поле ввода и файлы
+            messageInput.value = '';
+            clearFiles();
+            
+            // Рендерим сообщения
+            renderMessages();
+            
+            // Показываем уведомление
+            showNotification('Сообщение отправлено');
+        }
+        
+        // Форматируем время
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // Форматируем размер файла
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Б';
+            
+            const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            
+            return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i];
+        }
+        
+        // Получаем иконку для типа файла
+        function getFileIcon(fileType) {
+            if (fileType.startsWith('image/')) {
+                return '<i class="fas fa-file-image"></i>';
+            } else if (fileType === 'application/pdf') {
+                return '<i class="fas fa-file-pdf"></i>';
+            } else if (fileType.startsWith('text/')) {
+                return '<i class="fas fa-file-alt"></i>';
+            } else if (fileType.includes('word') || fileType.includes('document')) {
+                return '<i class="fas fa-file-word"></i>';
+            } else {
+                return '<i class="fas fa-file"></i>';
+            }
+        }
+        
+        // Обрабатываем файлы
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            
+            // Проверяем каждый файл
+            for (const file of files) {
+                // Проверяем размер файла
+                if (file.size > CONFIG.MAX_FILE_SIZE) {
+                    showNotification(`Файл "${file.name}" слишком большой. Максимальный размер: 5 МБ`, 'error');
+                    continue;
+                }
+                
+                // Проверяем тип файла
+                if (!CONFIG.ALLOWED_FILE_TYPES.includes(file.type)) {
+                    showNotification(`Файл "${file.name}" имеет неподдерживаемый формат`, 'error');
+                    continue;
+                }
+                
+                // Читаем файл как Data URL
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = {
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        url: e.target.result,
+                        data: e.target.result.split(',')[1] // Убираем префикс Data URL
+                    };
+                    
+                    state.files.push(fileData);
+                    renderFilePreviews();
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Сбрасываем значение input, чтобы можно было выбрать тот же файл снова
+            event.target.value = '';
+        }
+        
+        // Рендерим превью прикрепленных файлов
+        function renderFilePreviews() {
+            const container = document.getElementById('uploaded-files');
+            container.innerHTML = '';
+            
+            state.files.forEach((file, index) => {
+                const filePreview = document.createElement('div');
+                filePreview.className = 'file-preview';
+                filePreview.innerHTML = `
+                    ${getFileIcon(file.type)}
+                    <span>${file.name}</span>
+                    <span class="remove-file" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                container.appendChild(filePreview);
+            });
+            
+            // Добавляем обработчики для удаления файлов
+            document.querySelectorAll('.remove-file').forEach(element => {
+                element.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    state.files.splice(index, 1);
+                    renderFilePreviews();
+                });
+            });
+        }
+        
+        // Очищаем прикрепленные файлы
+        function clearFiles() {
+            state.files = [];
+            renderFilePreviews();
+        }
+        
+        // Обновляем счетчик участников
+        function updateParticipantsCount() {
+            const count = Object.keys(state.participants).length;
+            const countElement = document.getElementById('participants-count');
+            
+            if (count === 1) {
+                countElement.textContent = '1 участник';
+            } else if (count > 1 && count < 5) {
+                countElement.textContent = `${count} участника`;
+            } else {
+                countElement.textContent = `${count} участников`;
+            }
+        }
+        
+        // Прокручиваем вниз
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Показываем уведомление
+        function showNotification(text, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = text;
+            
+            // Устанавливаем цвет в зависимости от типа
+            if (type === 'error') {
+                notification.style.backgroundColor = '#f5576c';
+            } else {
+                notification.style.backgroundColor = '#4caf50';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Настраиваем обработчики событий
+        function setupEventListeners() {
+            // Кнопка присоединения к чату
+            document.getElementById('join-button').addEventListener('click', function() {
+                const usernameInput = document.getElementById('username-input');
+                const username = usernameInput.value.trim();
+                
+                if (!username) {
+                    showNotification('Пожалуйста, введите ваше имя', 'error');
+                    return;
+                }
+                
+                if (username.length > 20) {
+                    showNotification('Имя не должно превышать 20 символов', 'error');
+                    return;
+                }
+                
+                // Сохраняем имя пользователя
+                state.user.name = username;
+                localStorage.setItem('chat_username', username);
+                
+                // Показываем чат
+                showChatInterface();
+                
+                showNotification(`Добро пожаловать, ${username}!`);
+            });
+            
+            // Вход по нажатию Enter на поле имени
+            document.getElementById('username-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('join-button').click();
+                }
+            });
+            
+            // Кнопка отправки сообщения
+            document.getElementById('send-button').addEventListener('click', sendMessage);
+            
+            // Отправка сообщения по Enter (Shift+Enter для новой строки)
+            document.getElementById('message-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                
+                // Авторазмер текстового поля
+                setTimeout(() => {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                }, 0);
+            });
+            
+            // Кнопка прикрепления файла
+            document.getElementById('attachment-button').addEventListener('click', function() {
+                document.getElementById('file-input').click();
+            });
+            
+            // Выбор файлов
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
+            
+            // Изменение имени пользователя
+            document.getElementById('current-username').addEventListener('change', function() {
+                const newUsername = this.value.trim();
+                
+                if (!newUsername) {
+                    showNotification('Имя не может быть пустым', 'error');
+                    this.value = state.user.name;
+                    return;
+                }
+                
+                if (newUsername.length > 20) {
+                    showNotification('Имя не должно превышать 20 символов', 'error');
+                    this.value = state.user.name;
+                    return;
+                }
+                
+                const oldUsername = state.user.name;
+                state.user.name = newUsername;
+                localStorage.setItem('chat_username', newUsername);
+                
+                // Обновляем участников
+                saveParticipants();
+                
+                // Добавляем системное сообщение об изменении имени
+                addSystemMessage(`${oldUsername} сменил(а) имя на ${newUsername}`);
+                
+                showNotification(`Имя изменено на ${newUsername}`);
+            });
+            
+            // Кнопка "Поделиться ссылкой"
+            document.getElementById('share-link-btn').addEventListener('click', function() {
+                const modal = document.getElementById('link-modal');
+                const linkInput = document.getElementById('chat-link');
+                
+                // Генерируем ссылку на текущий чат
+                const chatLink = window.location.href.split('?')[0];
+                linkInput.value = chatLink;
+                
+                modal.style.display = 'flex';
+            });
+            
+            // Кнопка копирования ссылки
+            document.getElementById('copy-link-btn').addEventListener('click', function() {
+                const linkInput = document.getElementById('chat-link');
+                linkInput.select();
+                linkInput.setSelectionRange(0, 99999); // Для мобильных устройств
+                
+                navigator.clipboard.writeText(linkInput.value)
+                    .then(() => {
+                        showNotification('Ссылка скопирована в буфер обмена');
+                    })
+                    .catch(err => {
+                        console.error('Ошибка при копировании: ', err);
+                        showNotification('Не удалось скопировать ссылку', 'error');
+                    });
+            });
+            
+            // Закрытие модального окна
+            document.getElementById('close-modal-btn').addEventListener('click', function() {
+                document.getElementById('link-modal').style.display = 'none';
+            });
+            
+            // Закрытие модального окна при клике вне его
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('link-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Инициализируем приложение после загрузки страницы
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
