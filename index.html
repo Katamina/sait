@@ -683,6 +683,17 @@
     </div>
 
     <script>
+        console.log("✅ 1. Скрипт начал выполняться");
+    
+    // ================ ПЕРЕМЕННЫЕ ================
+    let currentUser = {
+        id: null,
+        name: '',
+        color: getRandomColor()
+    };
+    let attachedFiles = [];
+    
+    console.log("✅ 2. Переменные объявлены");
     // ================ КОНФИГУРАЦИЯ FIREBASE ================
     const firebaseConfig = {
         apiKey: "AIzaSyCe34RB74ykuboV27FUipaaCUtWAw90Jpc",
@@ -771,14 +782,11 @@
         });
     }
     
-    function joinChat() {
+        function joinChat() {
+        console.log("✅ 3. Функция joinChat() вызвана");
         const usernameInput = document.getElementById('username-input');
-        let username = usernameInput.value.trim();
-        
-        if (!username) {
-            alert('Пожалуйста, введите ваше имя!');
-            usernameInput.focus();
-            return;
+        // ... остальной код функции
+    }
         }
         
         currentUser.name = username;
