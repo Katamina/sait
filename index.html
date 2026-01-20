@@ -467,7 +467,7 @@
                 <div id="connection-status" class="connection-status" style="display: none;">
                     <i class="fas fa-check-circle"></i> Подключено к серверу
                 </div>
-                <input type="text" id="username-input" placeholder="Введите ваше имя" maxlength="20" value="Гость">
+                <input type="text" id="username-input" placeholder="Введите ваше имя" maxlength="20">
                 <button class="join-button" id="join-button">Войти в чат</button>
                 <p style="margin-top: 15px; font-size: 12px; color: #666;">
                     <i class="fas fa-info-circle"></i> Просто отправьте эту ссылку друзьям
@@ -617,11 +617,16 @@
     
     function joinChat() {
         const usernameInput = document.getElementById('username-input');
-        const username = usernameInput.value.trim();
+        let username = usernameInput.value.trim();
         
-        if (!username) {
-            alert('Введите ваше имя!');
-            return;
+        // Если пользователь оставил "Гость" - просим ввести настоящее имя
+        if (!username || username === 'Гость') {
+            username = prompt('Пожалуйста, введите ваше настоящее имя:', 'Аноним');
+            if (!username || username.trim() === '') {
+                alert('Имя обязательно! Введите имя.');
+                return;
+            }
+            username = username.trim();
         }
         
         currentUser.name = username;
@@ -640,8 +645,8 @@
         
         // Показываем уведомление
         showNotification(`Добро пожаловать, ${currentUser.name}!`);
+        console.log('✅ Пользователь вошел как:', currentUser.name);
     }
-    
     function loadMessages() {
         const messagesRef = database.ref('messages');
         
@@ -702,12 +707,18 @@
         return messageDiv;
     }
     
-    function sendMessage() {
+        function sendMessage() {
         const messageInput = document.getElementById('message-input');
         const text = messageInput.value.trim();
         
-        if (!text || currentUser.name === 'Гость') {
-            alert('Введите сообщение!');
+        // Проверяем, что пользователь вошел (имя не пустое и не "Гость")
+        if (!currentUser.name || currentUser.name === 'Гость') {
+            alert('Сначала войдите в чат! Введите имя и нажмите "Войти в чат"');
+            return;
+        }
+        
+        if (!text) {
+            alert('Введите текст сообщения!');
             return;
         }
         
@@ -720,7 +731,6 @@
             type: 'message'
         };
         
-        // Сохраняем в Firebase
         database.ref('messages').push(message)
             .then(() => {
                 messageInput.value = '';
@@ -729,7 +739,7 @@
             })
             .catch((error) => {
                 console.error('Ошибка:', error);
-                alert('Не удалось отправить сообщение');
+                alert('Ошибка отправки: ' + error.message);
             });
     }
     
@@ -822,4 +832,5 @@
 </script>
 </body>
 </html>
+
 
