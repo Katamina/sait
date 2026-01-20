@@ -682,18 +682,7 @@
         <span id="notification-text">Текст уведомления</span>
     </div>
 
-    <script>
-        console.log("✅ 1. Скрипт начал выполняться");
-    
-    // ================ ПЕРЕМЕННЫЕ ================
-    let currentUser = {
-        id: null,
-        name: '',
-        color: getRandomColor()
-    };
-    let attachedFiles = [];
-    
-    console.log("✅ 2. Переменные объявлены");
+        <script>
     // ================ КОНФИГУРАЦИЯ FIREBASE ================
     const firebaseConfig = {
         apiKey: "AIzaSyCe34RB74ykuboV27FUipaaCUtWAw90Jpc",
@@ -708,331 +697,169 @@
     // Инициализация Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    
+
     // ================ ПЕРЕМЕННЫЕ ================
     let currentUser = {
         id: null,
         name: '',
         color: getRandomColor()
     };
-    
-    let attachedFiles = []; // Массив для хранения прикрепленных файлов
-    
+
     // ================ ИНИЦИАЛИЗАЦИЯ ================
     document.addEventListener('DOMContentLoaded', function() {
-        // Генерация ID пользователя
         currentUser.id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        
-        // Настройка обработчиков событий
         setupEventListeners();
-        
-        // Проверка подключения
         checkConnection();
     });
-    
-    // ================ ФУНКЦИИ ================
+
+    // ================ ОСНОВНЫЕ ФУНКЦИИ ================
     function checkConnection() {
         const connectedRef = database.ref(".info/connected");
         connectedRef.on("value", function(snap) {
+            const statusEl = document.getElementById('connection-status');
+            const loader = document.getElementById('connection-loader');
+            
             if (snap.val() === true) {
-                console.log("✅ Подключено к Firebase");
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Подключено к серверу';
+                    statusEl.style.color = '#4CAF50';
+                    statusEl.style.display = 'block';
+                }
+                if (loader) loader.style.display = 'none';
             } else {
-                console.log("❌ Нет подключения к Firebase");
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Нет подключения';
+                    statusEl.style.color = '#f44336';
+                    statusEl.style.display = 'block';
+                }
+                if (loader) loader.style.display = 'none';
             }
         });
     }
-    
+
     function setupEventListeners() {
-        // Кнопка входа в чат
         document.getElementById('join-button').addEventListener('click', joinChat);
         document.getElementById('username-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') joinChat();
         });
         
-        // Кнопка прикрепления файлов
-        document.getElementById('attachment-button').addEventListener('click', function() {
-            document.getElementById('file-input').click();
-        });
-        
-        // Выбор файлов
-        document.getElementById('file-input').addEventListener('change', handleFileSelect);
-        
-        // Отправка сообщения
-        document.getElementById('send-button').addEventListener('click', sendMessageWithFiles);
+        document.getElementById('send-button').addEventListener('click', sendMessage);
         document.getElementById('message-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessageWithFiles();
+                sendMessage();
             }
-            // Авторазмер текстового поля
             setTimeout(() => {
                 e.target.style.height = 'auto';
                 e.target.style.height = (e.target.scrollHeight) + 'px';
             }, 0);
         });
         
-        // Изменение имени
         document.getElementById('current-username').addEventListener('change', updateUsername);
-        
-        // Поделиться ссылкой
         document.getElementById('share-link-btn').addEventListener('click', showShareModal);
         document.getElementById('copy-link-btn').addEventListener('click', copyLink);
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('link-modal').style.display = 'none';
         });
     }
-    
-        function joinChat() {
-        console.log("✅ 3. Функция joinChat() вызвана");
+
+    function joinChat() {
         const usernameInput = document.getElementById('username-input');
-        // ... остальной код функции
-    }
+        let username = usernameInput.value.trim();
+        
+        if (!username) {
+            alert('Пожалуйста, введите ваше имя!');
+            usernameInput.focus();
+            return;
         }
         
         currentUser.name = username;
         currentUser.color = getRandomColor();
         
-        // Показываем интерфейс чата
         document.getElementById('join-screen').style.display = 'none';
         document.getElementById('chat-interface').style.display = 'flex';
         document.getElementById('current-username').value = currentUser.name;
         
-        // Загружаем сообщения
         loadMessages();
-        
-        // Добавляем системное сообщение
         addSystemMessage(`👋 ${currentUser.name} присоединился(ась) к чату`);
-        
-        // Показываем уведомление
         showNotification(`Добро пожаловать, ${currentUser.name}!`);
-        console.log('✅ Пользователь вошел как:', currentUser.name);
     }
-    
+
     function loadMessages() {
         const messagesRef = database.ref('messages');
         
-        messagesRef.orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
-            const messagesContainer = document.getElementById('messages-container');
-            messagesContainer.innerHTML = '';
-            
-            const messages = snapshot.val() || {};
-            const messagesArray = Object.values(messages).sort((a, b) => a.timestamp - b.timestamp);
-            
-            if (messagesArray.length === 0) {
-                messagesContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>Чат пуст</h3>
-                        <p>Будьте первым, кто напишет сообщение!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            messagesArray.forEach(message => {
-                const messageElement = createMessageElement(message);
-                messagesContainer.appendChild(messageElement);
+        messagesRef.orderByChild('timestamp').limitToLast(100).once('value')
+            .then((snapshot) => {
+                const messagesContainer = document.getElementById('messages-container');
+                const loader = document.getElementById('messages-loader');
+                if (loader) loader.style.display = 'none';
+                
+                const messages = snapshot.val() || {};
+                const messagesArray = Object.values(messages).sort((a, b) => a.timestamp - b.timestamp);
+                
+                if (messagesArray.length === 0) {
+                    messagesContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><h3>Чат пуст</h3><p>Будьте первым, кто напишет сообщение!</p></div>';
+                } else {
+                    messagesContainer.innerHTML = '';
+                    messagesArray.forEach(message => {
+                        const messageElement = createMessageElement(message);
+                        messagesContainer.appendChild(messageElement);
+                    });
+                    scrollToBottom();
+                }
+                
+                // Подписываемся на новые сообщения
+                messagesRef.orderByChild('timestamp').limitToLast(100).on('child_added', (newSnapshot) => {
+                    const newMessage = newSnapshot.val();
+                    if (!document.querySelector(`[data-message-id="${newMessage.timestamp}"]`)) {
+                        const messageElement = createMessageElement(newMessage);
+                        document.getElementById('messages-container').appendChild(messageElement);
+                        scrollToBottom();
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error('Ошибка загрузки:', error);
+                const messagesContainer = document.getElementById('messages-container');
+                const loader = document.getElementById('messages-loader');
+                if (loader) loader.style.display = 'none';
+                messagesContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #f44336;"><h3>Ошибка загрузки</h3><p>Не удалось загрузить сообщения.</p></div>';
             });
-            
-            scrollToBottom();
-        });
     }
-    
+
     function createMessageElement(message) {
         const messageDiv = document.createElement('div');
+        messageDiv.dataset.messageId = message.timestamp;
         
         if (message.type === 'system') {
-            // Системное сообщение
             messageDiv.className = 'message system';
-            messageDiv.innerHTML = `
-                <div style="text-align: center; color: #888; font-size: 14px; margin: 10px 0;">
-                    ${message.text}
-                    <div class="message-time">${formatTime(message.timestamp)}</div>
-                </div>
-            `;
+            messageDiv.innerHTML = `<div style="text-align: center; color: #888; font-size: 14px; margin: 10px 0;">${message.text}<div class="message-time">${formatTime(message.timestamp)}</div></div>`;
         } else {
-            // Обычное сообщение
             const isCurrentUser = message.userId === currentUser.id;
             messageDiv.className = `message ${isCurrentUser ? 'outgoing' : 'incoming'}`;
-            
-            let contentHTML = '';
-            
-            // Текст сообщения
-            if (message.text) {
-                contentHTML += `<div class="message-text">${message.text}</div>`;
-            }
-            
-            // Файлы сообщения
-            if (message.files && message.files.length > 0) {
-                message.files.forEach(fileData => {
-                    const fileElement = createFileElement(fileData, isCurrentUser);
-                    contentHTML += fileElement.outerHTML;
-                });
-            }
-            
             messageDiv.innerHTML = `
-                <div class="message-sender" style="color: ${message.userColor || '#667eea'}">
-                    ${message.userName}
-                </div>
-                <div class="message-content">
-                    ${contentHTML}
-                </div>
+                <div class="message-sender" style="color: ${message.userColor || '#667eea'}">${message.userName}</div>
+                <div class="message-content">${message.text || ''}</div>
                 <div class="message-time">${formatTime(message.timestamp)}</div>
             `;
         }
-        
         return messageDiv;
     }
-    
-    // Функция для создания элемента файла
-    function createFileElement(fileData, isOutgoing = false) {
-        const fileDiv = document.createElement('div');
-        
-        // Определяем иконку по типу файла
-        let icon = 'fa-file';
-        let iconColor = isOutgoing ? 'white' : '#667eea';
-        
-        if (fileData.type.startsWith('image/')) {
-            icon = 'fa-file-image';
-            // Для картинок показываем миниатюру
-            const img = document.createElement('img');
-            img.src = fileData.data;
-            img.className = 'image-preview';
-            img.onclick = function() {
-                window.open(fileData.data, '_blank');
-            };
-            fileDiv.appendChild(img);
-        } else if (fileData.type.includes('pdf')) {
-            icon = 'fa-file-pdf';
-            iconColor = isOutgoing ? 'white' : '#f44336';
-        } else if (fileData.type.includes('word') || fileData.type.includes('document')) {
-            icon = 'fa-file-word';
-            iconColor = isOutgoing ? 'white' : '#2196f3';
-        } else if (fileData.type.includes('text')) {
-            icon = 'fa-file-alt';
-        } else if (fileData.type.includes('zip') || fileData.type.includes('compressed')) {
-            icon = 'fa-file-archive';
-            iconColor = isOutgoing ? 'white' : '#ff9800';
-        }
-        
-        const fileLink = document.createElement('a');
-        fileLink.href = fileData.data;
-        fileLink.download = fileData.name;
-        fileLink.target = '_blank';
-        fileLink.className = `file-message ${isOutgoing ? 'outgoing' : ''}`;
-        fileLink.innerHTML = `
-            <div class="file-message-icon">
-                <i class="fas ${icon}" style="color: ${iconColor}"></i>
-            </div>
-            <div class="file-message-info">
-                <div class="file-message-name">${fileData.name}</div>
-                <div class="file-message-size">${formatFileSize(fileData.size)}</div>
-            </div>
-        `;
-        
-        fileDiv.appendChild(fileLink);
-        return fileDiv;
-    }
-    
-    // Обработка выбора файлов
-    function handleFileSelect(event) {
-        const files = Array.from(event.target.files);
-        
-        // Ограничиваем количество файлов
-        if (files.length > 5) {
-            showNotification('Можно прикрепить не более 5 файлов', 'error');
-            return;
-        }
-        
-        // Проверяем каждый файл
-        files.forEach(file => {
-            // Максимальный размер файла - 5MB (Firebase имеет ограничения)
-            const MAX_SIZE = 5 * 1024 * 1024;
-            if (file.size > MAX_SIZE) {
-                showNotification(`Файл "${file.name}" слишком большой (макс. 5MB)`, 'error');
-                return;
-            }
-            
-            // Добавляем файл в массив
-            attachedFiles.push({
-                file: file,
-                id: Date.now() + Math.random()
-            });
-        });
-        
-        // Обновляем превью файлов
-        updateFilePreview();
-        
-        // Сбрасываем input
-        event.target.value = '';
-    }
-    
-    // Обновление превью файлов
-    function updateFilePreview() {
-        const previewContainer = document.getElementById('file-preview-container');
-        const previewList = document.getElementById('file-preview-list');
-        
-        if (attachedFiles.length === 0) {
-            previewContainer.style.display = 'none';
-            previewList.innerHTML = '';
-            return;
-        }
-        
-        previewContainer.style.display = 'block';
-        previewList.innerHTML = '';
-        
-        attachedFiles.forEach((fileData, index) => {
-            const file = fileData.file;
-            const fileElement = document.createElement('div');
-            fileElement.className = 'file-preview-item';
-            
-            // Определяем иконку
-            let icon = 'fa-file';
-            if (file.type.startsWith('image/')) icon = 'fa-file-image';
-            else if (file.type.includes('pdf')) icon = 'fa-file-pdf';
-            else if (file.type.includes('word') || file.type.includes('document')) icon = 'fa-file-word';
-            else if (file.type.includes('text')) icon = 'fa-file-alt';
-            else if (file.type.includes('zip') || file.type.includes('compressed')) icon = 'fa-file-archive';
-            
-            fileElement.innerHTML = `
-                <i class="fas ${icon}" style="color: #667eea;"></i>
-                <div class="file-preview-name">${file.name}</div>
-                <div style="font-size: 12px; color: #888; margin-right: 10px;">
-                    ${formatFileSize(file.size)}
-                </div>
-                <i class="fas fa-times file-preview-remove" data-index="${index}"></i>
-            `;
-            
-            previewList.appendChild(fileElement);
-        });
-        
-        // Добавляем обработчики для удаления файлов
-        document.querySelectorAll('.file-preview-remove').forEach(removeBtn => {
-            removeBtn.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                attachedFiles.splice(index, 1);
-                updateFilePreview();
-            });
-        });
-    }
-    
-    // Отправка сообщения с файлами
-    async function sendMessageWithFiles() {
+
+    function sendMessage() {
         const messageInput = document.getElementById('message-input');
         const text = messageInput.value.trim();
         
-        // Проверяем, что пользователь вошел
+        if (!text) {
+            alert('Введите сообщение!');
+            return;
+        }
+        
         if (!currentUser.name) {
             alert('Сначала войдите в чат!');
             return;
         }
         
-        // Проверяем, что есть хотя бы текст или файлы
-        if (!text && attachedFiles.length === 0) {
-            alert('Введите сообщение или прикрепите файл!');
-            return;
-        }
-        
-        // Подготовка данных для отправки
         const messageData = {
             userId: currentUser.id,
             userName: currentUser.name,
@@ -1042,43 +869,76 @@
             type: 'message'
         };
         
-        // Если есть файлы, конвертируем их в Base64
-        if (attachedFiles.length > 0) {
-            messageData.files = [];
-            
-            try {
-                // Конвертируем каждый файл в Base64
-                for (const fileData of attachedFiles) {
-                    const file = fileData.file;
-                    const base64 = await convertFileToBase64(file);
-                    
-                    messageData.files.push({
-                        name: file.name,
-                        type: file.type,
-                        size: file.size,
-                        data: base64
-                    });
-                }
-            } catch (error) {
-                console.error('Ошибка конвертации файла:', error);
-                showNotification('Ошибка обработки файлов', 'error');
-                return;
-            }
-        }
+        database.ref('messages').push(messageData)
+            .then(() => {
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                showNotification('Сообщение отправлено!');
+            })
+            .catch((error) => {
+                console.error('Ошибка отправки:', error);
+                showNotification('Ошибка отправки', 'error');
+            });
+    }
+
+    // ================ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ================
+    function getRandomColor() {
+        const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a', '#fee140'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    function addSystemMessage(text) {
+        const systemMessage = {
+            text: text,
+            timestamp: Date.now(),
+            type: 'system'
+        };
+        database.ref('messages').push(systemMessage);
+    }
+
+    function showNotification(text, type = 'success') {
+        const notification = document.getElementById('notification');
+        const textEl = document.getElementById('notification-text');
         
-        // Отправляем в Firebase
-        try {
-            await database.ref('messages').push(messageData);
-            
-            // Очищаем форму
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            attachedFiles = [];
-            updateFilePreview();
-            
-            scrollToBottom();
-            showNotification('Сообщение отправлено!');
-            
-        } catch (error) {
-            console.error('Ошибка отправки:', error);
-            showNotification('Ошибка отправки
+        textEl.textContent = text;
+        notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    function updateUsername() {
+        const newName = document.getElementById('current-username').value.trim();
+        if (newName && newName !== currentUser.name) {
+            const oldName = currentUser.name;
+            currentUser.name = newName;
+            showNotification(`Имя изменено на ${newName}`);
+        }
+    }
+
+    function showShareModal() {
+        document.getElementById('chat-link').value = window.location.href;
+        document.getElementById('link-modal').style.display = 'flex';
+    }
+
+    function copyLink() {
+        const linkInput = document.getElementById('chat-link');
+        linkInput.select();
+        document.execCommand('copy');
+        showNotification('Ссылка скопирована!');
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messages-container');
+        container.scrollTop = container.scrollHeight;
+    }
+    </script>
+</body>
+</html>
