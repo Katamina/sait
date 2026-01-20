@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 ОБЩИЙ ЧАТ В РЕАЛЬНОМ ВРЕМЕНИ | Приглашайте друзей!</title>
+    <title>Wikipdia</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -179,28 +179,6 @@
             border-color: #667eea;
         }
         
-        /* Стили для кнопок */
-        .attachment-button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex-shrink: 0;
-            background-color: #f0f2f5;
-            color: #667eea;
-            font-size: 20px;
-        }
-        
-        .attachment-button:hover {
-            background-color: #e4e6e9;
-            transform: scale(1.05);
-        }
-        
         .send-button {
             width: 50px;
             height: 50px;
@@ -218,101 +196,6 @@
         }
         
         .send-button:hover {
-            transform: scale(1.05);
-        }
-        
-        /* Стили для превью файлов */
-        .file-preview-container {
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .file-preview-item {
-            display: flex;
-            align-items: center;
-            background-color: #f0f2f5;
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin-bottom: 5px;
-            font-size: 14px;
-            max-width: 300px;
-        }
-        
-        .file-preview-name {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin: 0 10px;
-        }
-        
-        .file-preview-remove {
-            color: #f44336;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        /* Стили для файлов в сообщениях */
-        .file-message {
-            margin-top: 8px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: inherit;
-            max-width: 250px;
-            transition: all 0.3s;
-        }
-        
-        .file-message:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        .file-message-icon {
-            font-size: 24px;
-            margin-right: 12px;
-            color: #667eea;
-        }
-        
-        .file-message-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .file-message-name {
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .file-message-size {
-            font-size: 12px;
-            color: #888;
-        }
-        
-        .file-message.outgoing .file-message-icon {
-            color: white;
-        }
-        
-        .file-message.outgoing {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Миниатюры картинок */
-        .image-preview {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-top: 5px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .image-preview:hover {
             transform: scale(1.05);
         }
         
@@ -507,10 +390,6 @@
             .message-input-container {
                 padding: 15px;
             }
-            
-            .file-message {
-                max-width: 200px;
-            }
         }
         
         /* Скроллбар */
@@ -558,23 +437,6 @@
         .connection-status.offline {
             color: #f44336;
         }
-        
-        .typing-indicator {
-            font-size: 12px;
-            color: #888;
-            font-style: italic;
-            margin-left: 10px;
-        }
-        
-        .new-user-notification {
-            background-color: #e3f2fd;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-            text-align: center;
-            font-size: 14px;
-            color: #1976d2;
-        }
     </style>
 </head>
 <body>
@@ -582,7 +444,7 @@
         <!-- Экран входа -->
         <div class="join-screen" id="join-screen">
             <div class="user-setup">
-                <h2>Wikipedia</h2>
+                <h2>🔥 ОБЩИЙ ЧАТ В РЕАЛЬНОМ ВРЕМЕНИ!</h2>
                 <p>Любой пользователь с этой ссылкой может присоединиться к беседе. Все сообщения синхронизируются между всеми участниками!</p>
                 <div class="loader" id="connection-loader"></div>
                 <div id="connection-status" class="connection-status" style="display: none;">
@@ -625,32 +487,12 @@
                 </div>
             </div>
             
-            <!-- Поле ввода сообщений с прикреплением файлов -->
+            <!-- Поле ввода сообщений -->
             <div class="message-input-container">
                 <div class="input-wrapper">
                     <input type="text" class="username-input" id="current-username" placeholder="Ваше имя" maxlength="20">
-                    <textarea class="message-input" id="message-input" placeholder="Введите сообщение или прикрепите файл..." rows="1"></textarea>
-                    
-                    <!-- Контейнер для превью прикрепленных файлов -->
-                    <div class="file-preview-container" id="file-preview-container">
-                        <div style="margin-bottom: 5px; font-size: 14px; color: #666; font-weight: 500;">
-                            Прикрепленные файлы:
-                        </div>
-                        <div id="file-preview-list">
-                            <!-- Здесь будут появляться превью файлов -->
-                        </div>
-                    </div>
-                    
-                    <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
+                    <textarea class="message-input" id="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
                 </div>
-                
-                <!-- Кнопка прикрепления файлов -->
-                <button class="attachment-button" id="attachment-button" title="Прикрепить файл">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                
-                <!-- Скрытый input для выбора файлов -->
-                <input type="file" id="file-input" style="display: none;" multiple accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar">
                 
                 <!-- Кнопка отправки -->
                 <button class="send-button" id="send-button">
@@ -682,7 +524,7 @@
         <span id="notification-text">Текст уведомления</span>
     </div>
 
-        <script>
+    <script>
     // ================ КОНФИГУРАЦИЯ FIREBASE ================
     const firebaseConfig = {
         apiKey: "AIzaSyCe34RB74ykuboV27FUipaaCUtWAw90Jpc",
